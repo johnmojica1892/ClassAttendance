@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ClassAttendance</string>
+    <string name="my_profile">My Profile</string>
 </resources>

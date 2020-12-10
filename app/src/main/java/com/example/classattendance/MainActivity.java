@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -16,7 +17,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class MainActivity extends AppCompatActivity {
-    TextView fullName, email, idNumber;
+    public static final String TAG = "TAG";
+    TextView fFullName, fEmail, fIdNumber;
     FirebaseAuth fAuth;
     FirebaseFirestore fStore;
     String userId;
@@ -25,6 +27,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        fIdNumber = findViewById(R.id.txtIdNumber);
+        fFullName = findViewById(R.id.txtName);
+        fEmail = findViewById(R.id.txtEmail);
+
+        fAuth = FirebaseAuth.getInstance();
+        fStore = FirebaseFirestore.getInstance();
+
+        userId = fAuth.getCurrentUser().getUid();
+
+        DocumentReference documentReference = fStore.collection("users").document(userId);
+        documentReference.addSnapshotListener(this, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                if (error == null) {
+                    if(value.exists()) {
+                        fIdNumber.setText(value.getString("idNumber"));
+                        fFullName.setText(value.getString("fName"));
+                        fEmail.setText(value.getString("email"));
+                    }else {
+                        Log.d(TAG, "onEvent: ");
+                    }
+                }
+
+            }
+        });
+
 
     }
 
@@ -33,4 +61,5 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(getApplicationContext(),Login.class));
         finish();
     }
+
 }

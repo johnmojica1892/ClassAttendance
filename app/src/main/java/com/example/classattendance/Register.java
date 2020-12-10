@@ -20,6 +20,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -99,28 +100,50 @@ public class Register extends AppCompatActivity {
                 // Register the user in firebase
 
                 fAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
-                         if (task.isSuccessful()) {
-                            Toast.makeText(Register.this, "User Created.", Toast.LENGTH_SHORT).show();
-                            userID = fAuth.getCurrentUser().getUid();
-                            DocumentReference documentReference = fStore.collection("users").document(userID);
-                            Map<String,Object> user = new HashMap<>();
-                            user.put("fName", fullName);
-                            user.put("email",email);
-                            user.put("idNumber", studentNumber);
-                            documentReference.set(user).addOnSuccessListener((OnSuccessListener) (aVoid) -> {
-                                    Log.d(TAG, "onSuccess: user Profile is Created for "+ userID);
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.d(TAG, "onFailure: " + e.toString());
-                                }
-                            });
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                    if (task.isSuccessful()) {
 
-                        }else {
-                            Toast.makeText(Register.this, "Error ! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                         }
-                            progressBar.setVisibility(View.GONE);
+                        FirebaseUser user1 = fAuth.getCurrentUser();
+                        user1.sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(Register.this, "Please verify your email address.", Toast.LENGTH_SHORT).show();
+
+
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d(TAG, "onFailure: Email not sent" + e.getMessage());
+
+                            }
+                        });
+
+
+
+
+
+                        Toast.makeText(Register.this, "User Created.", Toast.LENGTH_SHORT).show();
+
+                        userID = fAuth.getCurrentUser().getUid();
+                        DocumentReference documentReference = fStore.collection("users").document(userID);
+                        Map<String,Object> user = new HashMap<>();
+                        user.put("fName", fullName);
+                        user.put("email",email);
+                        user.put("idNumber", studentNumber);
+                        documentReference.set(user).addOnSuccessListener((OnSuccessListener) (aVoid) -> {
+                            Log.d(TAG, "onSuccess: user Profile is Created for "+ userID);
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d(TAG, "onFailure: " + e.toString());
+                            }
+                        });
+                        startActivity(new Intent(getApplicationContext(), Login.class));
+
+                    }else {
+                        Toast.makeText(Register.this, "Error ! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                    progressBar.setVisibility(View.GONE);
                 });
             }
         });

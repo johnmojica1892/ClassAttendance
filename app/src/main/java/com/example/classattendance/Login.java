@@ -21,14 +21,15 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class Login extends AppCompatActivity {
+    public static final String TAG = "TAG";
     EditText mEmail, mPassword;
     Button mLoginBtn;
     TextView mCreatebtn, mForgotPassword;
     ProgressBar progressBar;
     FirebaseAuth fAuth;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,39 +42,35 @@ public class Login extends AppCompatActivity {
         mLoginBtn = findViewById(R.id.loginBtn);
         mCreatebtn = findViewById(R.id.txtCreateAccount);
         mForgotPassword = findViewById(R.id.txtForgotPassword);
-
-
+        FirebaseUser user = fAuth.getCurrentUser();
         mLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String email = mEmail.getText().toString().trim();
                 String password = mPassword.getText().toString().trim();
-
                 if(TextUtils.isEmpty(email)) {
                     mEmail.setError("Email is required");
                     return;
                 }
-
                 if(TextUtils.isEmpty(password)) {
                     mPassword.setError("Password is required");
                     return;
                 }
-
                 if (password.length() < 6) {
                     mPassword.setError("Password must be at least 6 character");
                     return;
                 }
-
                 progressBar.setVisibility(View.VISIBLE);
-
-                // authenticate the use
-
                 fAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if(task.isSuccessful()) {
-                            Toast.makeText(Login.this, "Logged in successfully", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            if (fAuth.getCurrentUser().isEmailVerified()) {
+                                Toast.makeText(Login.this, "Logged in successfully", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            }else {
+                                Toast.makeText(Login.this, "Please verify your email address", Toast.LENGTH_SHORT).show();
+                            }
                         }else {
                             Toast.makeText(Login.this, "Error ! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
@@ -82,26 +79,21 @@ public class Login extends AppCompatActivity {
                 });
             }
         });
-
         mCreatebtn.setOnClickListener(v -> {
             startActivity(new Intent(getApplicationContext(), Register.class));
             finish();
         });
-
         mForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 EditText resetMail = new EditText(v.getContext());
                 AlertDialog.Builder passwordResetDialog = new AlertDialog.Builder(v.getContext());
                 passwordResetDialog.setTitle("Reset Password ?" );
                 passwordResetDialog.setMessage("Please enter your Email");
                 passwordResetDialog.setView(resetMail);
-
                 passwordResetDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
                         String mail = resetMail.getText().toString();
                         fAuth.sendPasswordResetEmail(mail).addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
@@ -114,17 +106,13 @@ public class Login extends AppCompatActivity {
                                 Toast.makeText(Login.this, "Error ! Reset link is not sent." + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
-
                     }
                 });
-
                 passwordResetDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
                     }
                 });
-
                 passwordResetDialog.create().show();
             }
         });
