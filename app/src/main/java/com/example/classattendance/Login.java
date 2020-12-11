@@ -67,7 +67,7 @@ public class Login extends AppCompatActivity {
                         if(task.isSuccessful()) {
                             if (fAuth.getCurrentUser().isEmailVerified()) {
                                 Toast.makeText(Login.this, "Logged in successfully", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                startActivity(new Intent(getApplicationContext(), Home.class));
                             }else {
                                 Toast.makeText(Login.this, "Please verify your email address", Toast.LENGTH_SHORT).show();
                             }
@@ -83,38 +83,24 @@ public class Login extends AppCompatActivity {
             startActivity(new Intent(getApplicationContext(), Register.class));
             finish();
         });
-        mForgotPassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText resetMail = new EditText(v.getContext());
-                AlertDialog.Builder passwordResetDialog = new AlertDialog.Builder(v.getContext());
-                passwordResetDialog.setTitle("Reset Password ?" );
-                passwordResetDialog.setMessage("Please enter your Email");
-                passwordResetDialog.setView(resetMail);
-                passwordResetDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        mForgotPassword.setOnClickListener(v -> {
+            EditText resetMail = new EditText(v.getContext());
+            AlertDialog.Builder passwordResetDialog = new AlertDialog.Builder(v.getContext());
+            passwordResetDialog.setTitle("Reset Password ?" );
+            passwordResetDialog.setMessage("Please enter your Email");
+            passwordResetDialog.setView(resetMail);
+            passwordResetDialog.setPositiveButton("Yes", (dialog, which) -> {
+                String mail = resetMail.getText().toString();
+                fAuth.sendPasswordResetEmail(mail).addOnSuccessListener(aVoid -> Toast.makeText(Login.this, "Please check your email for password reset link.", Toast.LENGTH_SHORT).show()).addOnFailureListener(new OnFailureListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String mail = resetMail.getText().toString();
-                        fAuth.sendPasswordResetEmail(mail).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(Login.this, "Please check your email for password reset link.", Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(Login.this, "Error ! Reset link is not sent." + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(Login.this, "Error ! Reset link is not sent." + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
-                passwordResetDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
-                passwordResetDialog.create().show();
-            }
+            });
+            passwordResetDialog.setNegativeButton("No", (dialog, which) -> {
+            });
+            passwordResetDialog.create().show();
         });
     }
 }
